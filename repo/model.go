@@ -11,9 +11,11 @@ type User struct {
 	PersonalNumber string `db:"personal_number" json:"personal_number"`
 	Nickname       string `db:"nickname"        json:"nickname"`
 	Name           string `db:"name"            json:"name"`
+	Email          string `db:"email"           json:"email"`
 	Surname        string `db:"surname"         json:"surname"`
 	Group          string `db:"group"           json:"group"`
 	Grade          int16  `db:"grade"           json:"grade"`
+	Password       string `db:"password"        json:"password"`
 }
 
 // Book represents a book

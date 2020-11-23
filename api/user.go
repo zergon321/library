@@ -26,6 +26,11 @@ func addUserHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 			return
 		}
 
+		if body.Password != body.ConfirmPassword {
+			c.String(http.StatusBadRequest,
+				"password and confirmation do not match")
+		}
+
 		personalNumberBytes := make([]byte, 8)
 		rand.Seed(time.Now().UTC().UnixNano())
 		_, err = rand.Read(personalNumberBytes)
@@ -42,9 +47,11 @@ func addUserHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 			PersonalNumber: personalNumber,
 			Nickname:       body.Nickname,
 			Name:           body.Name,
+			Email:          body.Email,
 			Surname:        body.Surname,
 			Group:          body.Group,
 			Grade:          body.Grade,
+			Password:       body.Password,
 		}
 
 		id, err := db.AddUser(user)
@@ -60,6 +67,7 @@ func addUserHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 			ID:             id,
 			PersonalNumber: personalNumber,
 		}
+
 		c.JSON(http.StatusAccepted, reply)
 	}
 }

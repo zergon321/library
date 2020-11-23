@@ -20,7 +20,8 @@ func main() {
 	api.BookRoutes(apiRouter, db)
 
 	router.LoadHTMLGlob("templates/*")
-	www.IndexRoutes(router)
+	router.Static("/assets", "./assets")
+	www.Pages(router)
 
 	err = router.Run("127.0.0.1:8000")
 	handleError(err)

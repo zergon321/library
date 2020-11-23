@@ -18,10 +18,10 @@ type LibraryDatabase struct {
 func (db *LibraryDatabase) AddUser(user *User) (int64, error) {
 	query := `INSERT INTO library.users
 			  (personal_number, nickname,
-			  users.name, surname, users.group, grade)
-			  VALUES (?, ?, ?, ?, ?, ?);`
+			  users.name, surname, email, users.group, grade, password)
+			  VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
 	res, err := db.client.Exec(query, user.PersonalNumber, user.Nickname,
-		user.Name, user.Surname, user.Group, user.Grade)
+		user.Name, user.Surname, user.Email, user.Group, user.Grade, user.Password)
 
 	if err != nil {
 		return -1, err
