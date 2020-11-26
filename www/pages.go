@@ -3,6 +3,7 @@ package www
 import (
 	"net/http"
 
+	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,7 +17,41 @@ func indexHandler() func(c *gin.Context) {
 
 func signUpHandler() func(c *gin.Context) {
 	return func(c *gin.Context) {
-		c.HTML(http.StatusOK, "sign-up.html", nil)
+		session := sessions.Default(c)
+		userID := session.Get("user-id")
+
+		if userID == nil {
+			c.HTML(http.StatusOK, "sign-up.html", nil)
+		} else {
+			c.HTML(http.StatusForbidden, "error.html", gin.H{
+				"status":  http.StatusForbidden,
+				"message": "alredy authorized",
+			})
+		}
+	}
+}
+
+func loginHandler() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		c.HTML(http.StatusOK, "log-in.html", nil)
+	}
+}
+
+func userHandler() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		usernameData := session.Get("username")
+
+		if usernameData == nil {
+			c.Redirect(http.StatusPermanentRedirect, "/log-in")
+			return
+		}
+
+		username := usernameData.(string)
+
+		c.HTML(http.StatusOK, "user.html", gin.H{
+			"nickname": username,
+		})
 	}
 }
 
@@ -49,6 +84,8 @@ func errorHandler() func(c *gin.Context) {
 func Pages(r *gin.Engine) {
 	r.GET("/index", indexHandler())
 	r.GET("/sign-up", signUpHandler())
+	r.GET("/log-in", loginHandler())
 	r.GET("/signed-up", signedUpHandler())
 	r.GET("/error", errorHandler())
+	r.GET("/user", userHandler())
 }

@@ -5,6 +5,7 @@ import (
 	"library/repo"
 	"library/www"
 
+	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -14,6 +15,11 @@ func main() {
 	handleError(err)
 
 	router := gin.Default()
+
+	router.Use(sessions.Sessions("lib-session",
+		sessions.NewCookieStore([]byte(
+			"ad0c973f-84d4-496b-85c1-d24ed49c3882"))))
+
 	apiRouter := router.Group("/api")
 
 	api.UserRoutes(apiRouter, db)

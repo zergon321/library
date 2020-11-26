@@ -20,3 +20,10 @@ type AddBookRequest struct {
 	AuthorName    string `json:"author_name"`
 	AuthorSurname string `json:"author_surname"`
 }
+
+// UserAuthRequest represents a JSON
+// request to log in to the site.
+type UserAuthRequest struct {
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}

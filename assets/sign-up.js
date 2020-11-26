@@ -32,7 +32,7 @@ $("#submit-button").click(function() {
         } else {
             response.text().then(text => {
                 window.location.replace("/error?status=" +
-                response.status + "&message=" + text);
+                    response.status + "&message=" + text);
             });
         }
     }).catch(err => {

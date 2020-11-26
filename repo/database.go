@@ -14,6 +14,34 @@ type LibraryDatabase struct {
 	client *sqlx.DB
 }
 
+// GetUserByNickname returns the user if it exists,
+// or error if doesn't.
+func (db *LibraryDatabase) GetUserByNickname(nickname string) (*User, error) {
+	user := new(User)
+	query := "SELECT * FROM library.users WHERE users.nickname = ?;"
+	err := db.client.Get(user, query, nickname)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// GetUserByID returns the user if it exists,
+// or error if doesn't.
+func (db *LibraryDatabase) GetUserByID(id int) (*User, error) {
+	user := new(User)
+	query := "SELECT * FROM library.users WHERE users.id = ?;"
+	err := db.client.Get(user, query, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 // AddUser adss a new user in the database.
 func (db *LibraryDatabase) AddUser(user *User) (int64, error) {
 	query := `INSERT INTO library.users
