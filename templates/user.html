@@ -3,10 +3,51 @@
     <head>
         <meta charset="utf-8">
         <title>Library</title>
+        <link rel="stylesheet" type="text/css" href="/assets/user.css">
     </head>
 
     <body>
-        <h1>Welcome, {{ .nickname }}.</h1>
-        <p>We are glad to see you here.</p>
+        <div class="container">
+            <h1>Welcome, {{ .nickname }}.</h1>
+            <p>We are glad to see you here.</p>
+
+            <p>Here are the books held by you:</p>
+            <table cellpadding="4">
+                <th>Title</th>
+                <th>Author</th>
+                <th>Inventory number</th>
+                <th>Taken</th>
+                <th>Expires</th>
+                <th>Returned</th>
+                {{ range $book := .books }}
+                <tr>
+                    <td>{{ $book.Name }}</td>
+                    <td>{{ $book.AuthorName }} {{ $book.AuthorSurname }}</td>
+                    <td>{{ $book.InventoryNumber }}</td>
+                    <td>{{ $book.Taken.Format "02.01.2006" }}</td>
+                    <td>{{ $book.Expires.Format "02.01.2006" }}</td>
+                    <td>
+                        {{ if not $book.Returned }}
+                        not yet
+                        {{ else }}
+                        {{ $book.Returned.Format "02.01.2006" }}
+                        {{ end }}
+                    </td>
+                </tr>
+                {{ end }}
+            </table>
+
+            <p>Here are the books available for taking:</p>
+            <select id="book-select" class="available-books-list" name="book" multiple>
+                {{ range $book := .availableBooks }}
+                <option value="{{ $book.ID }}">{{ $book.AuthorName }} {{ $book.AuthorSurname }} - "{{ $book.Name }}"</option>
+                {{ end }}
+            </select>
+
+            <button id="rent-button" type="button">Submit</button>
+        </div>
+
+        <script src="assets/jquery-3.4.1.min.js" defer></script>
+        <script src="assets/user.js" defer></script>
     </body>
 </html>

@@ -10,7 +10,6 @@ import (
 	"library/repo"
 	"library/view"
 
-	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,11 +24,6 @@ func addUserHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 				"couldn't read the body", err)
 
 			return
-		}
-
-		if body.Password != body.ConfirmPassword {
-			c.String(http.StatusBadRequest,
-				"password and confirmation do not match")
 		}
 
 		personalNumberBytes := make([]byte, 8)
@@ -192,47 +186,6 @@ func userRentBookHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 	}
 }
 
-// authHandler returns a web API method for user authentication.
-func authHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		body := new(view.UserAuthRequest)
-		err := c.BindJSON(body)
-
-		if err != nil {
-			c.String(http.StatusBadRequest,
-				"couldn't read the body", err)
-
-			return
-		}
-
-		user, err := db.GetUserByNickname(body.Login)
-
-		if err != nil {
-			c.String(http.StatusUnauthorized,
-				"couldn't extract any data for the login", err)
-
-			return
-		}
-
-		if user.Password != body.Password {
-			c.String(http.StatusUnauthorized,
-				"password incorrect")
-		}
-
-		session.Set("user-id", user.ID)
-		session.Set("username", user.Nickname)
-		err = session.Save()
-
-		if err != nil {
-			c.String(http.StatusInternalServerError,
-				"couldn't save the session", err)
-		}
-
-		c.Status(http.StatusOK)
-	}
-}
-
 // UserRoutes sets up the routes for handling
 // requests for library users.
 func UserRoutes(rg *gin.RouterGroup, db *repo.LibraryDatabase) {
@@ -243,5 +196,4 @@ func UserRoutes(rg *gin.RouterGroup, db *repo.LibraryDatabase) {
 	usersRouter.GET("/:id/books/returned", getUserBooksReturnedHandler(db))
 	usersRouter.GET("/:id/books/on-hold", getUserBooksOnHoldHandler(db))
 	usersRouter.GET("/:id/rent-book", userRentBookHandler(db))
-	usersRouter.POST("/auth", authHandler(db))
 }

@@ -2,8 +2,10 @@ package repo
 
 import (
 	"fmt"
+	"library/view"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -182,6 +184,42 @@ func (db *LibraryDatabase) GetUserBooksOnHold(userID int) ([]*Book, error) {
 	return books, nil
 }
 
+// GetUserBooksInfo returns the information on
+// books ever taken by the user.
+func (db *LibraryDatabase) GetUserBooksInfo(userID int, expired, returned bool) ([]*view.BookInfo, error) {
+	queryBuilder := sq.Select("books.name", "books.author_name",
+		"books.author_surname", "books.inventory_number",
+		"users_to_books.taken", "users_to_books.expires",
+		"users_to_books.returned").From("users").
+		Join("library.users_to_books ON users.id = users_to_books.user_id").
+		Join("library.books ON users_to_books.book_id = books.id")
+	and := sq.And{sq.Eq{"users.id": userID}}
+
+	if expired {
+		and = append(and, sq.Expr("NOW() > users_to_books.expires"))
+	}
+
+	if returned {
+		and = append(and, sq.NotEq{"users_to_books.returned": nil})
+	}
+
+	queryBuilder = queryBuilder.Where(and)
+	query, args, err := queryBuilder.ToSql()
+
+	if err != nil {
+		return nil, err
+	}
+
+	booksInfo := []*view.BookInfo{}
+	err = db.client.Select(&booksInfo, query, args...)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return booksInfo, nil
+}
+
 // IsBookOnHold returns true if the book is on hold,
 // and false otherwise.
 func (db *LibraryDatabase) IsBookOnHold(bookID int) (bool, error) {
@@ -209,6 +247,28 @@ func (db *LibraryDatabase) GetBooksOnHold() ([]*Book, error) {
 			  INNER JOIN library.users_to_books
 			  ON books.id = users_to_books.book_id
 			  WHERE users_to_books.returned IS NULL;`
+	books := []*Book{}
+	err := db.client.Select(&books, query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return books, nil
+}
+
+// GetBooksAvailable returns all the books that are not
+// currently on hold by the library users.
+func (db *LibraryDatabase) GetBooksAvailable() ([]*Book, error) {
+	query := `SELECT *
+			  FROM library.books
+			  WHERE books.id NOT IN (SELECT books.id
+						   			 FROM library.users
+						   			 INNER JOIN library.users_to_books
+						   			 ON users.id = users_to_books.user_id
+						   			 INNER JOIN library.books
+						   			 ON users_to_books.book_id = books.id
+									 WHERE users_to_books.returned IS NULL);`
 	books := []*Book{}
 	err := db.client.Select(&books, query)
 

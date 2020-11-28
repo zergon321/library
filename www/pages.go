@@ -1,6 +1,7 @@
 package www
 
 import (
+	"library/repo"
 	"net/http"
 
 	"github.com/gin-gonic/contrib/sessions"
@@ -37,8 +38,11 @@ func loginHandler() func(c *gin.Context) {
 	}
 }
 
-func userHandler() func(c *gin.Context) {
+func userHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		expired := c.Query("expired")
+		returned := c.Query("returned")
+
 		session := sessions.Default(c)
 		usernameData := session.Get("username")
 
@@ -48,9 +52,30 @@ func userHandler() func(c *gin.Context) {
 		}
 
 		username := usernameData.(string)
+		userID := session.Get("user-id").(int)
+		books, err := db.GetUserBooksInfo(userID,
+			expired == "true", returned == "true")
+
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"status":  http.StatusInternalServerError,
+				"message": err.Error(),
+			})
+		}
+
+		availableBooks, err := db.GetBooksAvailable()
+
+		if err != nil {
+			c.HTML(http.StatusInternalServerError, "error.html", gin.H{
+				"status":  http.StatusInternalServerError,
+				"message": err.Error(),
+			})
+		}
 
 		c.HTML(http.StatusOK, "user.html", gin.H{
-			"nickname": username,
+			"nickname":       username,
+			"books":          books,
+			"availableBooks": availableBooks,
 		})
 	}
 }
@@ -81,11 +106,11 @@ func errorHandler() func(c *gin.Context) {
 
 // Pages sets up the routes
 // for the site pages.
-func Pages(r *gin.Engine) {
+func Pages(r *gin.Engine, db *repo.LibraryDatabase) {
 	r.GET("/index", indexHandler())
 	r.GET("/sign-up", signUpHandler())
 	r.GET("/log-in", loginHandler())
 	r.GET("/signed-up", signedUpHandler())
 	r.GET("/error", errorHandler())
-	r.GET("/user", userHandler())
+	r.GET("/user", userHandler(db))
 }

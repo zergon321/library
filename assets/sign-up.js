@@ -8,7 +8,7 @@ $("#submit-button").click(function() {
     let password = $("#password-field").val();
     let confirmPassword = $("#confirm-password-field").val();
 
-    fetch("/api/users", {
+    fetch("/ajax/user/sign-up", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

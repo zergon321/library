@@ -1,0 +1,28 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+table, th, td, tr {
+    border: solid;
+    border-width: 2px;
+    border-color: black;
+    border-spacing: 0ch;
+}
+
+p {
+    font-size: 25pt;
+}
+
+#rent-button {
+    width: 80px;
+    height: 40px;
+    margin-top: 60px;
+    margin-bottom: 20px;
+    background: rgb(94, 169, 235);
+    color: white;
+    border-radius: 11px;
+    cursor: pointer;
+    font-size: 20px;
+}

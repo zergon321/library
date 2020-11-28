@@ -1,19 +1,11 @@
-$("#submit-button").click(function() {
-    let login = $("#login-field").val();
-    let password = $("#password-field").val();
+$("#rent-button").click(function() {
+    let bookID = $("#book-select").val();
 
-    fetch("/ajax/user/auth", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            login: login,
-            password: password
-        })
+    fetch("/ajax/user/rent-book?book_id=" + bookID, {
+        method: "GET",
     }).then(response => {
         if (response.status === 200) {
-            window.location.replace("/user");
+            window.location.reload();
         } else {
             response.text().then(text => {
                 window.location.replace("/error?status=" +
@@ -24,4 +16,6 @@ $("#submit-button").click(function() {
         window.location.replace("/error?status=" +
             err.status + "&message=" + err.message);
     });
+
+    return false;
 });
