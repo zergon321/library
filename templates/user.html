@@ -15,22 +15,20 @@
             <table cellpadding="4">
                 <th>Title</th>
                 <th>Author</th>
-                <th>Inventory number</th>
-                <th>Taken</th>
-                <th>Expires</th>
-                <th>Returned</th>
+                <th>Price</th>
+                <th>Ordered</th>
+                <th>Delivered</th>
                 {{ range $book := .books }}
                 <tr>
                     <td>{{ $book.Name }}</td>
                     <td>{{ $book.AuthorName }} {{ $book.AuthorSurname }}</td>
-                    <td>{{ $book.InventoryNumber }}</td>
-                    <td>{{ $book.Taken.Format "02.01.2006" }}</td>
-                    <td>{{ $book.Expires.Format "02.01.2006" }}</td>
+                    <td>${{ $book.Price }}</td>
+                    <td>{{ $book.Ordered.Format "02.01.2006" }}</td>
                     <td>
-                        {{ if not $book.Returned }}
+                        {{ if not $book.Delivered }}
                         not yet
                         {{ else }}
-                        {{ $book.Returned.Format "02.01.2006" }}
+                        {{ $book.Delivered.Format "02.01.2006" }}
                         {{ end }}
                     </td>
                 </tr>
@@ -40,7 +38,7 @@
             <p>Here are the books available for taking:</p>
             <select id="book-select" class="available-books-list" name="book" multiple>
                 {{ range $book := .availableBooks }}
-                <option value="{{ $book.ID }}">{{ $book.AuthorName }} {{ $book.AuthorSurname }} - "{{ $book.Name }}"</option>
+                <option value="{{ $book.ID }}">{{ $book.AuthorName }} {{ $book.AuthorSurname }} - "{{ $book.Name }}", ${{ $book.Price }}</option>
                 {{ end }}
             </select>
 

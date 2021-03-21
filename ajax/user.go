@@ -118,14 +118,12 @@ func signUpHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 
 		personalNumber := hex.EncodeToString(personalNumberBytes)
 		user := &repo.User{
-			PersonalNumber: personalNumber,
-			Nickname:       body.Nickname,
-			Name:           body.Name,
-			Email:          body.Email,
-			Surname:        body.Surname,
-			Group:          body.Group,
-			Grade:          body.Grade,
-			Password:       body.Password,
+			Nickname: body.Nickname,
+			Name:     body.Name,
+			Email:    body.Email,
+			Surname:  body.Surname,
+			Patronim: body.Patronim,
+			Password: body.Password,
 		}
 
 		id, err := db.AddUser(user)

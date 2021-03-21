@@ -11,7 +11,7 @@ import (
 func indexHandler() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.html", gin.H{
-			"title": "Welcome to the public library",
+			"title": "Welcome to the book shop",
 		})
 	}
 }

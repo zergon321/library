@@ -6,9 +6,8 @@ type SignUpRequest struct {
 	Nickname        string `json:"nickname"`
 	Name            string `json:"name"`
 	Surname         string `json:"surname"`
+	Patronim        string `json:"patronim"`
 	Email           string `json:"email"`
-	Group           string `json:"group"`
-	Grade           int16  `json:"grade"`
 	Password        string `json:"password"`
 	ConfirmPassword string `json:"confirm_password"`
 }
@@ -19,18 +18,18 @@ type AddUserRequest struct {
 	Nickname string `json:"nickname"`
 	Name     string `json:"name"`
 	Surname  string `json:"surname"`
+	Patronim string `json:"patronim"`
 	Email    string `json:"email"`
-	Group    string `json:"group"`
-	Grade    int16  `json:"grade"`
 	Password string `json:"password"`
 }
 
 // AddBookRequest represents a JSON
 // request to add a new book.
 type AddBookRequest struct {
-	Name          string `json:"name"`
-	AuthorName    string `json:"author_name"`
-	AuthorSurname string `json:"author_surname"`
+	Name          string  `json:"name"`
+	AuthorName    string  `json:"author_name"`
+	AuthorSurname string  `json:"author_surname"`
+	Price         float64 `json:"price"`
 }
 
 // UserAuthRequest represents a JSON

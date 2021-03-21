@@ -37,10 +37,11 @@ func addBookHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 
 		inventoryNumber := hex.EncodeToString(inventoryNumberBytes)
 		book := &repo.Book{
-			Name:            body.Name,
-			AuthorName:      body.AuthorName,
-			AuthorSurname:   body.AuthorSurname,
-			InventoryNumber: inventoryNumber,
+			Name:          body.Name,
+			AuthorName:    body.AuthorName,
+			AuthorSurname: body.AuthorSurname,
+			VendorCode:    inventoryNumber,
+			Price:         body.Price,
 		}
 
 		id, err := db.AddBook(book)
@@ -75,21 +76,6 @@ func getBooksOnHoldHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 	}
 }
 
-func getBooksExpiredHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
-	return func(c *gin.Context) {
-		books, err := db.GetBooksExpired()
-
-		if err != nil {
-			c.String(http.StatusInternalServerError,
-				"couldn't get expired books")
-
-			return
-		}
-
-		c.JSON(http.StatusOK, books)
-	}
-}
-
 // BookRoutes sets up the routes for web functions
 // for working with books.
 func BookRoutes(rg *gin.RouterGroup, db *repo.LibraryDatabase) {
@@ -97,5 +83,4 @@ func BookRoutes(rg *gin.RouterGroup, db *repo.LibraryDatabase) {
 
 	booksRouter.POST("/", addBookHandler(db))
 	booksRouter.GET("/on-hold", getBooksOnHoldHandler(db))
-	booksRouter.GET("/expired", getBooksExpiredHandler(db))
 }

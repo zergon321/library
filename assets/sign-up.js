@@ -2,9 +2,8 @@ $("#submit-button").click(function() {
     let name = $("#name-field").val();
     let surname = $("#surname-field").val();
     let nickname = $("#nickname-field").val();
+    let patronim = $("#patronim-field").val();
     let email = $("#email-field").val();
-    let group = $("#group-field").val();
-    let grade = $("#grade-field").val();
     let password = $("#password-field").val();
     let confirmPassword = $("#confirm-password-field").val();
 
@@ -16,10 +15,9 @@ $("#submit-button").click(function() {
         body: JSON.stringify({
             name: name,
             surname: surname,
+            patronim: patronim,
             nickname: nickname,
             email: email,
-            group: group,
-            grade: parseInt(grade, 10),
             password: password,
             confirm_password: confirmPassword
         })

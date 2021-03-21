@@ -47,11 +47,10 @@ func (db *LibraryDatabase) GetUserByID(id int) (*User, error) {
 // AddUser adss a new user in the database.
 func (db *LibraryDatabase) AddUser(user *User) (int64, error) {
 	query := `INSERT INTO library.users
-			  (personal_number, nickname,
-			  users.name, surname, email, users.group, grade, password)
-			  VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
-	res, err := db.client.Exec(query, user.PersonalNumber, user.Nickname,
-		user.Name, user.Surname, user.Email, user.Group, user.Grade, user.Password)
+			  (nickname, users.name, surname, patronim, email, password)
+			  VALUES (?, ?, ?, ?, ?, ?);`
+	res, err := db.client.Exec(query, user.Nickname,
+		user.Name, user.Surname, user.Patronim, user.Email, user.Password)
 
 	if err != nil {
 		return -1, err
@@ -70,9 +69,9 @@ func (db *LibraryDatabase) AddUser(user *User) (int64, error) {
 func (db *LibraryDatabase) AddBook(book *Book) (int64, error) {
 	query := `INSERT INTO library.books
 			  (books.name, author_name, author_surname,
-			  inventory_number) VALUES (?, ?, ?, ?);`
+			  vendor_code, price) VALUES (?, ?, ?, ?, ?);`
 	res, err := db.client.Exec(query, book.Name, book.AuthorName,
-		book.AuthorSurname, book.InventoryNumber)
+		book.AuthorSurname, book.VendorCode, book.Price)
 
 	if err != nil {
 		return -1, err
@@ -102,17 +101,16 @@ func (db *LibraryDatabase) RentBookForUser(userID, bookID int) (*UserToBook, err
 	}
 
 	query := `INSERT INTO library.users_to_books
-			  (user_id, book_id, taken, expires, returned)
-			  VALUES (?, ?, ?, ?, NULL);`
+			  (user_id, book_id, ordered, delivered)
+			  VALUES (?, ?, ?, NULL);`
 	userToBook := &UserToBook{
-		UserID:   userID,
-		BookID:   bookID,
-		Taken:    time.Now(),
-		Expires:  time.Now().Add(7 * 24 * time.Hour),
-		Returned: nil,
+		UserID:    userID,
+		BookID:    bookID,
+		Ordered:   time.Now(),
+		Delivered: nil,
 	}
 	_, err = db.client.Exec(query, userToBook.UserID,
-		userToBook.BookID, userToBook.Taken, userToBook.Expires)
+		userToBook.BookID, userToBook.Ordered)
 
 	if err != nil {
 		return nil, err
@@ -125,7 +123,7 @@ func (db *LibraryDatabase) RentBookForUser(userID, bookID int) (*UserToBook, err
 // by the user with the specified ID.
 func (db *LibraryDatabase) GetUserBooks(userID int) ([]*Book, error) {
 	query := `SELECT books.id, books.name, books.author_name,
-			  books.author_surname, books.inventory_number
+			  books.author_surname, books.vendor_code
 			  FROM library.users
 			  INNER JOIN library.users_to_books
 			  ON users.id = users_to_books.user_id
@@ -146,7 +144,7 @@ func (db *LibraryDatabase) GetUserBooks(userID int) ([]*Book, error) {
 // the user in the library.
 func (db *LibraryDatabase) GetUserBooksReturned(userID int) ([]*Book, error) {
 	query := `SELECT books.id, books.name, books.author_name,
-			  books.author_surname, books.inventory_number
+			  books.author_surname, books.vendor_code
 			  FROM library.users
 			  INNER JOIN library.users_to_books
 			  ON users.id = users_to_books.user_id
@@ -167,13 +165,13 @@ func (db *LibraryDatabase) GetUserBooksReturned(userID int) ([]*Book, error) {
 // by the user.
 func (db *LibraryDatabase) GetUserBooksOnHold(userID int) ([]*Book, error) {
 	query := `SELECT books.id, books.name, books.author_name,
-			  books.author_surname, books.inventory_number
+			  books.author_surname, books.vendor_code
 			  FROM library.users
 			  INNER JOIN library.users_to_books
 			  ON users.id = users_to_books.user_id
 			  INNER JOIN library.books
 			  ON users_to_books.book_id = books.id
-			  WHERE users.id = ? AND returned IS NULL;`
+			  WHERE users.id = ? AND delivered IS NULL;`
 	books := []*Book{}
 	err := db.client.Select(&books, query, userID)
 
@@ -188,9 +186,8 @@ func (db *LibraryDatabase) GetUserBooksOnHold(userID int) ([]*Book, error) {
 // books ever taken by the user.
 func (db *LibraryDatabase) GetUserBooksInfo(userID int, expired, returned bool) ([]*view.BookInfo, error) {
 	queryBuilder := sq.Select("books.name", "books.author_name",
-		"books.author_surname", "books.inventory_number",
-		"users_to_books.taken", "users_to_books.expires",
-		"users_to_books.returned").From("users").
+		"books.author_surname", "books.vendor_code", "books.price",
+		"users_to_books.ordered", "users_to_books.delivered").From("users").
 		Join("library.users_to_books ON users.id = users_to_books.user_id").
 		Join("library.books ON users_to_books.book_id = books.id")
 	and := sq.And{sq.Eq{"users.id": userID}}
@@ -200,7 +197,7 @@ func (db *LibraryDatabase) GetUserBooksInfo(userID int, expired, returned bool) 
 	}
 
 	if returned {
-		and = append(and, sq.NotEq{"users_to_books.returned": nil})
+		and = append(and, sq.NotEq{"users_to_books.delivered": nil})
 	}
 
 	queryBuilder = queryBuilder.Where(and)
@@ -228,7 +225,7 @@ func (db *LibraryDatabase) IsBookOnHold(bookID int) (bool, error) {
 				FROM library.books
 				INNER JOIN library.users_to_books
 				ON books.id = users_to_books.book_id
-				WHERE users_to_books.returned IS NULL) AS lol;`
+				WHERE users_to_books.delivered IS NULL) AS lol;`
 	result := false
 	err := db.client.Get(&result, query, bookID)
 
@@ -242,11 +239,11 @@ func (db *LibraryDatabase) IsBookOnHold(bookID int) (bool, error) {
 // GetBooksOnHold returns all the books currently being on hold.
 func (db *LibraryDatabase) GetBooksOnHold() ([]*Book, error) {
 	query := `SELECT books.id, books.name, books.author_name,
-			  books.author_surname, books.inventory_number
+			  books.author_surname, books.vendor_code
 			  FROM library.books
 			  INNER JOIN library.users_to_books
 			  ON books.id = users_to_books.book_id
-			  WHERE users_to_books.returned IS NULL;`
+			  WHERE users_to_books.delivered IS NULL;`
 	books := []*Book{}
 	err := db.client.Select(&books, query)
 
@@ -268,26 +265,7 @@ func (db *LibraryDatabase) GetBooksAvailable() ([]*Book, error) {
 						   			 ON users.id = users_to_books.user_id
 						   			 INNER JOIN library.books
 						   			 ON users_to_books.book_id = books.id
-									 WHERE users_to_books.returned IS NULL);`
-	books := []*Book{}
-	err := db.client.Select(&books, query)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return books, nil
-}
-
-// GetBooksExpired returns all the expired books.
-func (db *LibraryDatabase) GetBooksExpired() ([]*Book, error) {
-	query := `SELECT books.id, books.name, books.author_name,
-			  books.author_surname, books.inventory_number
-			  FROM library.books
-			  INNER JOIN library.users_to_books
-			  ON books.id = users_to_books.book_id
-			  WHERE users_to_books.returned IS NULL
-				  AND NOW() > users_to_books.expires;`
+									 WHERE users_to_books.delivered IS NULL);`
 	books := []*Book{}
 	err := db.client.Select(&books, query)
 
