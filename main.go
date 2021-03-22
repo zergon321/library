@@ -32,7 +32,7 @@ func main() {
 	www.Pages(router, db)
 	ajax.UserAJAX(ajaxRouter, db)
 
-	err = router.Run("127.0.0.1:8000")
+	err = router.Run("127.0.0.1:8080")
 	handleError(err)
 }
 

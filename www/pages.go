@@ -16,6 +16,38 @@ func indexHandler() func(c *gin.Context) {
 	}
 }
 
+func orderHandler() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		usernameData := session.Get("username")
+
+		if usernameData == nil {
+			c.Redirect(http.StatusPermanentRedirect, "/log-in")
+			return
+		}
+
+		c.HTML(http.StatusOK, "order.html", nil)
+	}
+}
+
+func orderedHandler() func(c *gin.Context) {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		usernameData := session.Get("username")
+
+		if usernameData == nil {
+			c.Redirect(http.StatusPermanentRedirect, "/log-in")
+			return
+		}
+
+		username := usernameData.(string)
+
+		c.HTML(http.StatusOK, "ordered.html", gin.H{
+			"nickname": username,
+		})
+	}
+}
+
 func signUpHandler() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
@@ -113,4 +145,6 @@ func Pages(r *gin.Engine, db *repo.LibraryDatabase) {
 	r.GET("/signed-up", signedUpHandler())
 	r.GET("/error", errorHandler())
 	r.GET("/user", userHandler(db))
+	r.GET("/order", orderHandler())
+	r.GET("/ordered", orderedHandler())
 }

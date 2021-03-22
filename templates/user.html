@@ -11,7 +11,7 @@
             <h1>Welcome, {{ .nickname }}.</h1>
             <p>We are glad to see you here.</p>
 
-            <p>Here are the books held by you:</p>
+            <p>Here are the books in your cart:</p>
             <table cellpadding="4">
                 <th>Title</th>
                 <th>Author</th>
@@ -35,7 +35,9 @@
                 {{ end }}
             </table>
 
-            <p>Here are the books available for taking:</p>
+            <button id="order-button" type="button">Order</button>
+
+            <p>Here are the books available for buying:</p>
             <select id="book-select" class="available-books-list" name="book" multiple>
                 {{ range $book := .availableBooks }}
                 <option value="{{ $book.ID }}">{{ $book.AuthorName }} {{ $book.AuthorSurname }} - "{{ $book.Name }}", ${{ $book.Price }}</option>

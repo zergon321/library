@@ -100,9 +100,18 @@ func signUpHandler(db *repo.LibraryDatabase) func(c *gin.Context) {
 			return
 		}
 
+		if !body.Agree {
+			c.String(http.StatusConflict,
+				"you should give a consent for data processing")
+
+			return
+		}
+
 		if body.Password != body.ConfirmPassword {
 			c.String(http.StatusBadRequest,
 				"password and confirmation do not match")
+
+			return
 		}
 
 		personalNumberBytes := make([]byte, 8)

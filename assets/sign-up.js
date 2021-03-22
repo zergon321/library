@@ -6,6 +6,7 @@ $("#submit-button").click(function() {
     let email = $("#email-field").val();
     let password = $("#password-field").val();
     let confirmPassword = $("#confirm-password-field").val();
+    let agree = $("#agree-checkbox").is(":checked");
 
     fetch("/ajax/user/sign-up", {
         method: "POST",
@@ -19,7 +20,8 @@ $("#submit-button").click(function() {
             nickname: nickname,
             email: email,
             password: password,
-            confirm_password: confirmPassword
+            confirm_password: confirmPassword,
+            agree: agree
         })
     }).then(response => {
         if (response.status === 202) {

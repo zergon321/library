@@ -19,3 +19,7 @@ $("#rent-button").click(function() {
 
     return false;
 });
+
+$("#order-button").click(function() {
+    window.location.replace("/order");
+});
